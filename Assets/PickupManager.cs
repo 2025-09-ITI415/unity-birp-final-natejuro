@@ -1,60 +1,75 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PickupManager : MonoBehaviour
 {
-    [Header("UI")]
-    public Text pickupText;
+    private int count;
+    private float timer;
+    private bool gameOver;
+    private float finalTime;
+
+    public Text countText;
     public Text timerText;
-    public GameObject endGamePanel;
-    public Text endGameText;
-    public Stopwatch stopwatch;
+    public Text endTime;
+    public GameObject endPanel;
 
-    [Header("Pickups")]
-    public Pickup[] pickups;
+    public int winCount = 4;
 
-    private int collected = 0;
-    private float timer = 0f;
-    private bool gameFinished = false;
 
-    void Start()
-    {
-        stopwatch.StartStopwatch();
-        if (pickups == null || pickups.Length == 0)
-            pickups = FindObjectsOfType<Pickup>();
+    void Start() {
+        count = 0;
+        timer = 0f;
+        gameOver = false;
 
-        UpdatePickupText();
-        endGamePanel.SetActive(false);
+        endPanel.SetActive(false);
+        SetCountText();
     }
 
-    void Update()
-    {
-        if (gameFinished) return;
+    void Update() {
+        if (gameOver) return;
 
         timer += Time.deltaTime;
-        timerText.text = "Time: " + timer.ToString("F1") + "s";
+
+        int minutes = Mathf.FloorToInt(timer / 60f);
+        int seconds = Mathf.FloorToInt(timer % 60f);
+
+        timerText.text = "Time: " + minutes.ToString("00") + ":" + seconds.ToString("00");
     }
 
-    public void CollectPickup(Pickup pickup)
+    private void OnTriggerEnter(Collider other)
     {
-        collected++;
-        UpdatePickupText();
-
-        if (collected >= pickups.Length)
+        if (other.CompareTag("Pickup"))
         {
-            FinishGame();
+            other.gameObject.SetActive(false);
+            count = count + 1;
+            SetCountText();
         }
     }
+    
+    public void CollectPickup() {
+        if (gameOver) return;
 
-    void UpdatePickupText()
-    {
-        pickupText.text = "Pickups: " + collected + " / " + pickups.Length;
+        count++;
+        SetCountText();
     }
 
-    void FinishGame()
-    {
-        stopwatch.StopStopwatch();
-        endGamePanel.SetActive(true);
-        endGameText.text = "You collected all pickups!\nTime: " + timer.ToString("F2") + "s";
+    void SetCountText() {
+        countText.text = "Count: " + count;
+        if (count >= winCount) {
+            EndGame();
+        }
+    }
+    void EndGame() {
+        gameOver = true;
+        finalTime = timer;
+        endTime.text = "Game Over";
+        endPanel.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    public void RestartGame() {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

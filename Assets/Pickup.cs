@@ -2,19 +2,12 @@ using UnityEngine;
 
 public class Pickup : MonoBehaviour
 {
-    private int count;
+    private void OnTriggerEnter(Collider other) {
+        PickupManager manager = FindObjectOfType<PickupManager>();
 
-    void Start() {
-        count = 0;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Pickup"))
-        {
-            other.gameObject.SetActive(false);
-            Destroy(gameObject);
-            count = count + 1;
+        if (manager != null) {
+            manager.CollectPickup();
         }
+        Destroy(gameObject);
     }
 }
